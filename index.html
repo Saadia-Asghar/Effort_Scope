@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Effort Scope - Team Contribution Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <!-- Dynamic Tech Background -->
+  <div class="tech-background">
+    <canvas id="techLines"></canvas>
+  </div>
+
+  <section id="authScreen" class="auth-screen">
+    <div class="card auth-card">
+      <h1>Effort Scope</h1>
+      <p class="tagline">Track team contributions with precision</p>
+      
+      <form id="loginForm" class="auth-form">
+        <div class="form-group icon-input">
+          <span class="material-icons-round input-icon">person</span>
+          <input type="text" id="username" placeholder="Enter username (e.g. johndoe)" required>
+        </div>
+        <div class="form-group icon-input">
+          <span class="material-icons-round input-icon">lock</span>
+          <input type="password" id="password" placeholder="Enter password (min 6 chars)" required maxlength="32">
+          <span class="material-icons-round password-toggle" id="togglePassword" title="Show/Hide password">visibility_off</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
+        <div id="authError" class="error-message hidden"></div>
+        <div id="loginPrompt" class="info-message hidden"></div>
+        <p class="auth-toggle-text">Don't have an account? <a href="#" id="showRegister">Register</a></p>
+      </form>
+
+      <form id="registerForm" class="auth-form hidden">
+        <div class="form-group icon-input">
+          <span class="material-icons-round input-icon">person</span>
+          <input type="text" id="regUsername" placeholder="Enter username (e.g. johndoe)" required>
+        </div>
+        <div class="form-group icon-input">
+          <span class="material-icons-round input-icon">lock</span>
+          <input type="password" id="regPassword" placeholder="Enter password (min 6 chars)" required maxlength="32">
+          <span class="material-icons-round password-toggle" id="toggleRegPassword" title="Show/Hide password">visibility_off</span>
+        </div>
+        <div id="regPasswordStrength" class="password-strength"></div>
+        <div class="form-group icon-input">
+          <span class="material-icons-round input-icon">lock</span>
+          <input type="password" id="confirmPassword" placeholder="Confirm password" required maxlength="32">
+          <span class="material-icons-round password-toggle" id="toggleConfirmPassword" title="Show/Hide password">visibility_off</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Register</button>
+        <div id="regError" class="error-message hidden"></div>
+        <div id="registerPrompt" class="info-message hidden"></div>
+        <p class="auth-toggle-text">Already have an account? <a href="#" id="showLogin">Login</a></p>
+      </form>
+
+      <div id="userSelection" class="user-selection hidden">
+        <h3>Who are you?</h3>
+        <div class="form-group icon-input">
+          <span class="material-icons-round input-icon">group</span>
+          <select id="memberSelect" required>
+            <option value="">Select existing member...</option>
+          </select>
+        </div>
+        <div class="or-separator">or</div>
+        <div class="form-group icon-input">
+          <span class="material-icons-round input-icon">person_add</span>
+          <input type="text" id="newMember" placeholder="Enter new member name">
+        </div>
+        <button id="continueBtn" class="btn btn-primary btn-block" disabled>Continue</button>
+        <div id="memberError" class="error-message hidden"></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="appContainer" class="app-container hidden">
+    <header class="header">
+      <div class="header-content">
+        <h1>Effort Scope</h1>
+        <div class="header-controls">
+          <div class="datetime-display" id="liveDateTime"></div>
+          <select id="countrySelect" class="country-select">
+            <option value="">Select your country...</option>
+            <option value="US">United States</option>
+            <option value="GB">United Kingdom</option>
+            <option value="PK">Pakistan</option>
+            <option value="IN">India</option>
+            <option value="DE">Germany</option>
+            <option value="FR">France</option>
+            <option value="CN">China</option>
+            <option value="JP">Japan</option>
+            <option value="RU">Russia</option>
+            <option value="BR">Brazil</option>
+            <option value="CA">Canada</option>
+            <option value="AU">Australia</option>
+            <option value="EG">Egypt</option>
+            <option value="ZA">South Africa</option>
+            <option value="TR">Turkey</option>
+            <option value="IT">Italy</option>
+            <option value="ES">Spain</option>
+            <option value="MX">Mexico</option>
+            <option value="KR">South Korea</option>
+            <option value="ID">Indonesia</option>
+            <option value="NG">Nigeria</option>
+            <option value="AR">Argentina</option>
+            <option value="SA">Saudi Arabia</option>
+            <option value="BD">Bangladesh</option>
+            <option value="PL">Poland</option>
+            <option value="NL">Netherlands</option>
+            <option value="UA">Ukraine</option>
+            <option value="TH">Thailand</option>
+            <option value="IR">Iran</option>
+            <option value="PH">Philippines</option>
+            <!-- Add more countries as needed -->
+          </select>
+          <div class="dark-mode-toggle">
+            <span class="material-icons-round" id="darkModeIcon">dark_mode</span>
+            <label class="switch">
+              <input type="checkbox" id="darkModeToggle">
+              <span class="slider"></span>
+            </label>
+            <span>Dark Mode</span>
+          </div>
+          <div class="user-info">
+            <span id="currentUser">Welcome, User!</span>
+            <button id="logoutBtn" class="btn btn-outline">Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <nav class="nav nav-bar">
+      <button class="nav-btn active" data-section="dashboard">
+        <span class="material-icons-round">dashboard</span>
+        Dashboard
+      </button>
+      <button class="nav-btn" data-section="add">
+        <span class="material-icons-round">add_circle</span>
+        Add Contribution
+      </button>
+      <button class="nav-btn" data-section="charts">
+        <span class="material-icons-round">pie_chart</span>
+        Performance Charts
+      </button>
+      <button class="nav-btn" data-section="data">
+        <span class="material-icons-round">storage</span>
+        Data Management
+      </button>
+    </nav>
+
+    <main class="main-content">
+      <section id="dashboard" class="section active">
+        <div class="section-header">
+          <h2>Dashboard Overview</h2>
+          <p>Track your team's contributions and progress</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <span class="material-icons-round">people</span>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value" id="totalMembers">0</span>
+              <span class="stat-label">Total Members</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <span class="material-icons-round">schedule</span>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value" id="totalHours">0</span>
+              <span class="stat-label">Total Hours</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <span class="material-icons-round">assignment</span>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value" id="totalContributions">0</span>
+              <span class="stat-label">Contributions</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <span class="material-icons-round">today</span>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value" id="currentDate">Today</span>
+              <span class="stat-label">Current Date</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="filters">
+          <select id="categoryFilter">
+            <option value="">All Categories</option>
+            <option value="Development">Development</option>
+            <option value="Design">Design</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Testing">Testing</option>
+            <option value="Management">Management</option>
+            <option value="Other">Other</option>
+          </select>
+          <select id="memberFilter">
+            <option value="">All Members</option>
+          </select>
+          <input type="date" id="startDate">
+          <input type="date" id="endDate">
+          <button id="searchBtn" class="btn btn-primary">
+            <span class="material-icons-round">search</span>
+            Search
+          </button>
+          <button id="resetFilters" class="btn btn-outline">Reset</button>
+        </div>
+
+        <div class="table-container">
+          <table class="contributions-table">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="member">Member</th>
+                <th class="sortable" data-sort="task">Task</th>
+                <th class="sortable" data-sort="category">Category</th>
+                <th class="sortable" data-sort="hours">Hours</th>
+                <th class="sortable" data-sort="date">Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="contributionsTable">
+              <!-- Contributions will be loaded here -->
+            </tbody>
+          </table>
+          <div id="emptyState" class="empty-state hidden">
+            <span class="material-icons-round">info</span>
+            <p>No contributions found. Add your first contribution!</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="add" class="section">
+        <div class="section-header">
+          <h2>Add New Contribution</h2>
+          <p>Log your work and track your progress</p>
+        </div>
+
+        <form id="contributionForm" class="contribution-form compact-form">
+          <div class="form-row compact-row">
+            <div class="form-group">
+              <label for="task">Task *</label>
+              <input type="text" id="task" placeholder="e.g., Developed login feature" required>
+            </div>
+            <div class="form-group">
+              <label for="category">Category *</label>
+              <select id="category" required>
+                <option value="">Select category</option>
+                <option value="Development">Development</option>
+                <option value="Design">Design</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Testing">Testing</option>
+                <option value="Management">Management</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="hours">Hours *</label>
+              <input type="number" id="hours" step="0.1" min="0.1" placeholder="e.g., 8.5" required>
+            </div>
+            <div class="form-group">
+              <label for="date">Date *</label>
+              <input type="date" id="date" required>
+            </div>
+            <div class="form-group member-display">
+              <label>Member</label>
+              <div id="contributionMember"></div>
+            </div>
+            <div class="form-actions compact-actions">
+              <button type="submit" class="btn btn-primary">
+                <span class="material-icons-round">add</span>
+                Add
+              </button>
+              <button type="button" id="cancelEdit" class="btn btn-outline hidden">
+                <span class="material-icons-round">cancel</span>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section id="charts" class="section">
+        <div class="section-header">
+          <h2>Performance Charts</h2>
+          <p>Visualize your team's contribution patterns and project velocity</p>
+        </div>
+
+        <div class="chart-controls">
+          <select id="chartPeriod">
+            <option value="7">Last 7 Days</option>
+            <option value="30">Last 30 Days</option>
+            <option value="90">Last 3 Months</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Member Contributions</h3>
+            <canvas id="memberChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Category Breakdown</h3>
+            <canvas id="categoryChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Project Velocity</h3>
+            <canvas id="weeklyChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section id="data" class="section">
+        <div class="section-header">
+          <h2>Data Management</h2>
+          <p>Export, import, and manage your data</p>
+        </div>
+
+        <div class="data-actions row-actions">
+          <button id="exportJSON" class="btn btn-primary">
+            <span class="material-icons-round">download</span>
+            Export JSON
+          </button>
+          <button id="exportCSV" class="btn btn-primary">
+            <span class="material-icons-round">table_chart</span>
+            Export CSV
+          </button>
+          <button id="exportPDF" class="btn btn-primary">
+            <span class="material-icons-round">picture_as_pdf</span>
+            Export PDF
+          </button>
+          <div class="file-input-wrapper">
+            <input type="file" id="importFile" accept=".json" class="hidden">
+            <button id="importBtn" class="btn btn-outline">
+              <span class="material-icons-round">upload</span>
+              Import JSON
+            </button>
+          </div>
+          <button id="generateTestData" class="btn btn-secondary">
+            <span class="material-icons-round">science</span>
+            Generate Test Data
+          </button>
+          <button id="clearData" class="btn btn-danger">
+            <span class="material-icons-round">delete_forever</span>
+            Clear All Data
+          </button>
+        </div>
+
+        <div id="dataStatus" class="status-message hidden"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="noDataFound" class="empty-state hidden">
+    <span class="material-icons-round">info</span>
+    <p>No such data found.</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
